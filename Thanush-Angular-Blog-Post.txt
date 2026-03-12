@@ -1,0 +1,270 @@
+my GitHub link: https://github.com/thanushkannan29/Angular-Blog-Post.git
+
+my blog post components code below
+
+blog-post-container.ts
+
+import { Component, inject, signal } from '@angular/core';
+import { APIService } from '../services/api.service';
+import { BlogModel } from '../models/blogpost.model';
+@Component({
+  selector: 'app-blog-post-container',
+  imports: [],
+  templateUrl: './blog-post-container.html',
+  styleUrl: './blog-post-container.css',
+})
+export class BlogPostContainer {
+
+  blogposts=signal<BlogModel[]>([]);
+  blogservice=inject(APIService);
+  constructor(){
+
+  }
+getblogpost(){
+  console.log("Hello inside blog fuction started")
+
+  this.blogservice.apiGetPost().subscribe({
+    next:(data:any)=>{
+      this.blogposts.set(data?.posts || []);
+      console.log(this.blogposts());
+    },
+    error:(err)=>{
+      console.error(err.message);
+    },
+    complete:()=>{
+      console.log("All Done working complted end")
+    }
+  })
+}
+}
+
+
+blog-post-container.html
+
+
+<h2 class="page-title">Thanush Blog Posts</h2>
+<button (click)="getblogpost()">Get All blogPost</button>
+@if(blogposts().length>0)
+{
+    <div class="container mt-4">
+  <div class="row g-4">
+
+    @for (blogpost of blogposts(); track blogpost.id) {
+
+      <div class="col-lg-4 col-md-6 col-12">
+        <div class="card blog-card h-100 shadow-lg border-0">
+
+          <div class="card-body d-flex flex-column">
+
+            <h5 class="card-title fw-bold">
+              {{ blogpost.title }}
+            </h5>
+
+            <p class="card-text">
+              {{ blogpost.body }}
+            </p>
+
+            <div class="mb-3">
+
+              @for (tag of blogpost.tags; track tag) {
+                <span class="tag-badge">
+                  {{ tag }}
+                </span>
+              }
+
+            </div>
+
+            <div class="mt-auto stats">
+              <small>
+                👍 {{ blogpost.reactions.likes }}
+                👎 {{ blogpost.reactions.dislikes }}
+                👁 {{ blogpost.views }}
+              </small>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+    }
+
+  </div>
+</div>
+
+}
+
+blog-post-container.css
+
+/* Page background */
+body{
+    background:#f5f7fb;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    color:#2c3e50;
+}
+
+/* Page container */
+.container{
+    width:90%;
+    max-width:1200px;
+    margin:auto;
+}
+.page-title{
+    font-size:26px;
+    margin:20px 0;
+    font-weight:600;
+    align-content: center;
+}
+
+
+/* Grid layout */
+.row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:24px;
+}
+
+/* Responsive columns */
+.col-lg-4,
+.col-md-6,
+.col-12{
+    width:100%;
+}
+
+/* Tablet */
+@media (min-width:768px){
+    .col-md-6{
+        width:calc(50% - 24px);
+    }
+}
+
+/* Desktop */
+@media (min-width:1024px){
+    .col-lg-4{
+        width:calc(33.33% - 24px);
+    }
+}
+
+/* Blog card */
+.blog-card{
+    background:#ffffff;
+    border-radius:14px;
+    padding:22px;
+    height:100%;
+    box-shadow:0 6px 20px rgba(0,0,0,0.08);
+    transition:all 0.25s ease;
+    display:flex;
+    flex-direction:column;
+    border:1px solid #f1f1f1;
+}
+
+.blog-card:hover{
+    transform:translateY(-6px);
+    box-shadow:0 12px 28px rgba(0,0,0,0.12);
+}
+
+/* Card body */
+.card-body{
+    display:flex;
+    flex-direction:column;
+    height:100%;
+}
+
+/* Title */
+.card-title{
+    font-size:20px;
+    font-weight:600;
+    margin-bottom:10px;
+    color:#1a1a1a;
+}
+
+/* Text */
+.card-text{
+    font-size:14px;
+    color:#6b7280;
+    line-height:1.6;
+    margin-bottom:16px;
+}
+
+/* Tags container */
+.mb-3{
+    margin-bottom:14px;
+}
+
+/* Tag badge */
+.tag-badge{
+    display:inline-block;
+    background:#eef2ff;
+    color:#4f46e5;
+    padding:5px 11px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:500;
+    margin-right:6px;
+    margin-bottom:6px;
+}
+
+/* Bottom stats */
+.stats{
+    margin-top:auto;
+    font-size:13px;
+    color:#64748b;
+    padding-top:10px;
+    border-top:1px solid #f1f1f1;
+}
+
+/* Button style */
+button{
+    padding:10px 18px;
+    background:#4f46e5;
+    color:white;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:14px;
+    font-weight:500;
+    margin:14px 0;
+    transition:all 0.2s ease;
+}
+
+button:hover{
+    background:#4338ca;
+    transform:translateY(-1px);
+}
+
+blogpost.model.ts
+export class BlogModel {
+  id!: number;
+  title!: string;
+  body!: string;
+  tags!: string[];
+  reactions!: Reactions;
+  views!: number;
+  userId!: number;
+}
+
+export class Reactions {
+  likes!: number;
+  dislikes!: number;
+}
+
+api.service.ts
+
+import { HttpClient } from "@angular/common/http";
+import { Injectable } from "@angular/core";
+
+@Injectable({
+    providedIn: 'root'
+})
+export class APIService {
+    constructor(private http: HttpClient) {
+    }
+    apiGetPost(){
+        return this.http.get('https://dummyjson.com/posts');
+    }
+}
+
+app.html
+
+<app-blog-post-container></app-blog-post-container>
+
